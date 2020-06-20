@@ -2,6 +2,8 @@ import argparse
 import random
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.base import is_classifier
+import pandas as pd
+
 import numpy as np
 random.seed(42)
 
@@ -12,16 +14,70 @@ def part1(samples):
     #extract features
     X = extract_features(samples)
     assert type(X) == np.ndarray
-    print("Example sample feature vec: ", X[0])
+    print("Example sample feature vec: ", X[1])
     print("Data shape: ", X.shape)
     return X
 
 
 def extract_features(samples):
+    #print(samples[0], sample[1])
     print("Extracting features ...")
-    pass #Fill this in
+    dict_postindex_word = {}
+    corpus=[]
+    #articles = os.listdir(folder1)+os.listdir(folder2) 
+    #folders=[folder1, folder2]
 
+    for sample in samples:
+        words = []
+        words += [word.lower() for word in sample.split() if (word.isalpha())]
+        ## find unique words in every sample and their frequency in the sample:
+        uniqueWords, wordCount=get_unique(words)
+            
+        ## only select those unique words which show up more than n times:
+        uniqueFrequentWords, uniqueFrequentWordCount=select_frequent_words(uniqueWords, wordCount, 1)
+        corpus += [word for word in uniqueFrequentWords]
+           
+            ## save frequent words and their count to dictionary:
+                #article_plus_classname = article + '_' + folder
+        sample_index = samples.index(sample)
+        for index, count in enumerate(uniqueFrequentWordCount):
+            if sample_index in dict_postindex_word:
+                dict_postindex_word[sample_index][uniqueFrequentWords[index]]=count
+            else: 
+                dict_postindex_word[sample_index]={}
+                dict_postindex_word[sample_index][uniqueFrequentWords[index]]=count
+                
+    # extract class name from the file extention the files were previously given:
+    #k = [k.partition("_")[2] for k,v in dict_postindex_word.items()]
+    
+    #fill out NaN cells with 0's:
+    df = pd.DataFrame(dict_postindex_word).fillna(0) 
+    df = df.values
+    #transpose the dateframe so that x-axis becomes y-axis and vice versa: 
+    #df_transposed = df.T
+    
+    #add a column 'class_name' to the dataframe:  
+    #df_transposed.insert(0,'class_name', k, True)
+   
+    
+    return df
 
+    #pass #Fill this in
+    #return features
+    
+
+def get_unique(x):
+    y, f = np.unique(x, return_counts=True)
+    return y, f
+
+def select_frequent_words(words, counts, n):
+    more_than_n_times = []
+    remaining_counts = []
+    for index, count in enumerate(counts):
+        if count > n:
+                more_than_n_times.append(words[index])
+                remaining_counts.append(count)
+    return more_than_n_times, remaining_counts
 
 ##### PART 2
 #DONT CHANGE THIS FUNCTION
