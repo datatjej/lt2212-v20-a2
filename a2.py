@@ -2,8 +2,9 @@ import argparse
 import random
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.base import is_classifier
+from sklearn.decomposition import TruncatedSVD
 import pandas as pd
-
+import matplotlib.pyplot as plt
 import numpy as np
 random.seed(42)
 
@@ -93,10 +94,9 @@ def part2(X, n_dim):
 
 
 def reduce_dim(X,n=10):
-    #fill this in
-    pass
-
-
+    svd = TruncatedSVD(n_components=n)
+    X_transformed = svd.fit_transform(X)
+    return X_transformed
 
 ##### PART 3
 #DONT CHANGE THIS FUNCTION EXCEPT WHERE INSTRUCTED
