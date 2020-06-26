@@ -6,6 +6,19 @@ from sklearn.decomposition import TruncatedSVD
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+#chosen training algorithms:
+#from sklearn.naive_bayes import MultinomialNB
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+#other additional imports:
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import f1_score
+from sklearn.preprocessing import MinMaxScaler, normalize
+from nltk.corpus import stopwords
+
 random.seed(42)
 
 
@@ -25,43 +38,61 @@ def extract_features(samples):
     print("Extracting features ...")
     dict_postindex_word = {}
     corpus=[]
+    stop_words = set(stopwords.words('english'))
     #articles = os.listdir(folder1)+os.listdir(folder2) 
     #folders=[folder1, folder2]
 
     for sample in samples:
         words = []
-        words += [word.lower() for word in sample.split() if (word.isalpha())]
-        ## find unique words in every sample and their frequency in the sample:
+        # all words in sample tokenized and saved in list:
+        words += [word.lower() for word in sample.split() if (word.isalpha() and word not in stop_words)]
+        ## filter out unique words and their frequency in the sample:
         uniqueWords, wordCount=get_unique(words)
-            
-        ## only select those unique words which show up more than n times:
-        uniqueFrequentWords, uniqueFrequentWordCount=select_frequent_words(uniqueWords, wordCount, 1)
-        corpus += [word for word in uniqueFrequentWords]
            
-            ## save frequent words and their count to dictionary:
-                #article_plus_classname = article + '_' + folder
-        sample_index = samples.index(sample)
-        for index, count in enumerate(uniqueFrequentWordCount):
+        ## save frequent words and their count to dictionary:
+        #article_plus_classname = article + '_' + folder
+        #sample_index = "Doc_" + str(samples.index(sample))
+        #for index, count in enumerate(uniqueFrequentWordCount):
+        #    if sample_index in dict_postindex_word:
+        #        dict_postindex_word[sample_index][uniqueFrequentWords[index]]=count
+        #    else: 
+        #        dict_postindex_word[sample_index]={}
+        #        dict_postindex_word[sample_index][uniqueFrequentWords[index]]=count
+        
+        sample_index = "Doc_" + str(samples.index(sample))
+        for index, count in enumerate(wordCount):
             if sample_index in dict_postindex_word:
-                dict_postindex_word[sample_index][uniqueFrequentWords[index]]=count
+                dict_postindex_word[sample_index][uniqueWords[index]]=count
             else: 
                 dict_postindex_word[sample_index]={}
-                dict_postindex_word[sample_index][uniqueFrequentWords[index]]=count
+                dict_postindex_word[sample_index][uniqueWords[index]]=count
+       
+    ## filter out those words which show up less than n times:
+    #    uniqueFrequentWords, uniqueFrequentWordCount=select_frequent_words(uniqueWords, wordCount, 0)
+    #    corpus += [word for word in uniqueFrequentWords]
                 
     # extract class name from the file extention the files were previously given:
     #k = [k.partition("_")[2] for k,v in dict_postindex_word.items()]
+    #print("Trying dict_postindex_word: ", dict_postindex_word.get('Doc_1')) 
     
     #fill out NaN cells with 0's:
     df = pd.DataFrame(dict_postindex_word).fillna(0) 
-    df = df.values
     #transpose the dateframe so that x-axis becomes y-axis and vice versa: 
+    df_transposed = df.T
+    #turn df into numpy array:
+    df_as_nparray = df_transposed.to_numpy()
+    
+    freq_sums_of_nparray = np.sum(df_as_nparray, axis =0)
+    filtered_nparray = freq_sums_of_nparray > 10
+    filtered_df_as_nparray = df_as_nparray[:, filtered_nparray]
+    
     #df_transposed = df.T
     
     #add a column 'class_name' to the dataframe:  
     #df_transposed.insert(0,'class_name', k, True)
    
     
-    return df
+    return filtered_df_as_nparray
 
     #pass #Fill this in
     #return features
@@ -85,6 +116,10 @@ def select_frequent_words(words, counts, n):
 def part2(X, n_dim):
     #Reduce Dimension
     print("Reducing dimensions ... ")
+    #scaler = MinMaxScaler()
+    #scaled_X = scaler.fit_transform(X)
+    #normalized_X = normalize(scaled_X, norm='l1', axis=1, copy=True)
+    #X_dr = reduce_dim(normalized_X, n=n_dim)
     X_dr = reduce_dim(X, n=n_dim)
     assert X_dr.shape != X.shape
     assert X_dr.shape[1] == n_dim
@@ -102,9 +137,9 @@ def reduce_dim(X,n=10):
 #DONT CHANGE THIS FUNCTION EXCEPT WHERE INSTRUCTED
 def get_classifier(clf_id):
     if clf_id == 1:
-        clf = "" # <--- REPLACE THIS WITH A SKLEARN MODEL
+        clf = KNeighborsClassifier(n_neighbors=3) # <--- REPLACE THIS WITH A SKLEARN MODEL
     elif clf_id == 2:
-        clf = "" # <--- REPLACE THIS WITH A SKLEARN MODEL
+        clf = DecisionTreeClassifier() # <--- REPLACE THIS WITH A SKLEARN MODEL
     else:
         raise KeyError("No clf with id {}".format(clf_id))
 
@@ -138,19 +173,29 @@ def part3(X, y, clf_id):
     print("Evaluating classcifier ...")
     evalute_classifier(clf, X_test, y_test)
 
-
+# Fill in this:
 def shuffle_split(X,y):
-    pass # Fill in this
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
+    return X_train, X_test, y_train, y_test 
 
-
+# Fill in this:
 def train_classifer(clf, X, y):
     assert is_classifier(clf)
-    ## fill in this
-
-
+    return clf.fit(X,y)
+    
+# Fill in this:
 def evalute_classifier(clf, X, y):
     assert is_classifier(clf)
-    #Fill this in
+    predicted_labels_for_X = clf.predict(X)
+    accuracy = accuracy_score(y, predicted_labels_for_X)
+    precision = precision_score(y, predicted_labels_for_X, average='weighted')
+    recall = recall_score(y, predicted_labels_for_X, average='weighted')
+    f_measure = f1_score(y, predicted_labels_for_X, average='weighted')
+    #print("Accuracy:", accuracy_score(y, y_pred, normalize=True))
+    print("Accuracy:", accuracy)
+    print("Precision:", precision)
+    print("Recall:", recall)
+    print("F-measure:", f_measure)
 
 
 ######
