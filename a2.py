@@ -16,7 +16,6 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
-from sklearn.preprocessing import MinMaxScaler, normalize
 from nltk.corpus import stopwords
 
 random.seed(42)
@@ -34,13 +33,9 @@ def part1(samples):
 
 
 def extract_features(samples):
-    #print(samples[0], sample[1])
     print("Extracting features ...")
     dict_postindex_word = {}
-    corpus=[]
     stop_words = set(stopwords.words('english'))
-    #articles = os.listdir(folder1)+os.listdir(folder2) 
-    #folders=[folder1, folder2]
 
     for sample in samples:
         words = []
@@ -48,16 +43,6 @@ def extract_features(samples):
         words += [word.lower() for word in sample.split() if (word.isalpha() and word not in stop_words)]
         ## filter out unique words and their frequency in the sample:
         uniqueWords, wordCount=get_unique(words)
-           
-        ## save frequent words and their count to dictionary:
-        #article_plus_classname = article + '_' + folder
-        #sample_index = "Doc_" + str(samples.index(sample))
-        #for index, count in enumerate(uniqueFrequentWordCount):
-        #    if sample_index in dict_postindex_word:
-        #        dict_postindex_word[sample_index][uniqueFrequentWords[index]]=count
-        #    else: 
-        #        dict_postindex_word[sample_index]={}
-        #        dict_postindex_word[sample_index][uniqueFrequentWords[index]]=count
         
         sample_index = "Doc_" + str(samples.index(sample))
         for index, count in enumerate(wordCount):
@@ -66,14 +51,6 @@ def extract_features(samples):
             else: 
                 dict_postindex_word[sample_index]={}
                 dict_postindex_word[sample_index][uniqueWords[index]]=count
-       
-    ## filter out those words which show up less than n times:
-    #    uniqueFrequentWords, uniqueFrequentWordCount=select_frequent_words(uniqueWords, wordCount, 0)
-    #    corpus += [word for word in uniqueFrequentWords]
-                
-    # extract class name from the file extention the files were previously given:
-    #k = [k.partition("_")[2] for k,v in dict_postindex_word.items()]
-    #print("Trying dict_postindex_word: ", dict_postindex_word.get('Doc_1')) 
     
     #fill out NaN cells with 0's:
     df = pd.DataFrame(dict_postindex_word).fillna(0) 
@@ -84,42 +61,20 @@ def extract_features(samples):
     
     freq_sums_of_nparray = np.sum(df_as_nparray, axis =0)
     filtered_nparray = freq_sums_of_nparray > 10
-    filtered_df_as_nparray = df_as_nparray[:, filtered_nparray]
+    features = df_as_nparray[:, filtered_nparray]
     
-    #df_transposed = df.T
-    
-    #add a column 'class_name' to the dataframe:  
-    #df_transposed.insert(0,'class_name', k, True)
-   
-    
-    return filtered_df_as_nparray
-
-    #pass #Fill this in
-    #return features
+    return features
     
 
 def get_unique(x):
     y, f = np.unique(x, return_counts=True)
     return y, f
 
-def select_frequent_words(words, counts, n):
-    more_than_n_times = []
-    remaining_counts = []
-    for index, count in enumerate(counts):
-        if count > n:
-                more_than_n_times.append(words[index])
-                remaining_counts.append(count)
-    return more_than_n_times, remaining_counts
-
 ##### PART 2
 #DONT CHANGE THIS FUNCTION
 def part2(X, n_dim):
     #Reduce Dimension
     print("Reducing dimensions ... ")
-    #scaler = MinMaxScaler()
-    #scaled_X = scaler.fit_transform(X)
-    #normalized_X = normalize(scaled_X, norm='l1', axis=1, copy=True)
-    #X_dr = reduce_dim(normalized_X, n=n_dim)
     X_dr = reduce_dim(X, n=n_dim)
     assert X_dr.shape != X.shape
     assert X_dr.shape[1] == n_dim
@@ -191,7 +146,6 @@ def evalute_classifier(clf, X, y):
     precision = precision_score(y, predicted_labels_for_X, average='weighted')
     recall = recall_score(y, predicted_labels_for_X, average='weighted')
     f_measure = f1_score(y, predicted_labels_for_X, average='weighted')
-    #print("Accuracy:", accuracy_score(y, y_pred, normalize=True))
     print("Accuracy:", accuracy)
     print("Precision:", precision)
     print("Recall:", recall)
