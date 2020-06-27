@@ -15,7 +15,7 @@ I used truncated SVD for the dimensionality reduction.
 
 ## Part 4
 <p align="center">
-<img src="results_table.png" alt="Table of results" width="100%" height="auto" border="10" /><br>
+<img src="results_table.PNG" alt="Table of results" width="80%" height="auto" border="10" /><br>
 </p>
 
 [observations]
