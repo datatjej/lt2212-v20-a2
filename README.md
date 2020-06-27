@@ -10,7 +10,7 @@ For tokenization I just split the data on white space and filtered out words con
 I used truncated SVD for the dimensionality reduction. 
 
 ## Part 3
--m 1 = KNeighborsClassifier(n_neighbors=3) 
+-m 1 = KNeighborsClassifier(n_neighbors=3)<br> 
 -m 2 = DecisionTreeClassifier()
 
 ## Part 4
