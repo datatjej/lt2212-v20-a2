@@ -14,8 +14,8 @@ I used truncated SVD for the dimensionality reduction.
 -m 2 = DecisionTreeClassifier()
 
 ## Part 4
-<p align="center">
+<p>
 <img src="results_table.PNG" alt="Table of results" width="80%" height="auto" border="10" /><br>
 </p>
 
-[observations]
+As the table above shows, the decision tree classifier is the clear winner when it comes to classifying the unreduced features, at 62% accuracy. The k-nearest neighbors classifier, set to the 3 nearest neighbors in this experiment, performs worse at ~42% accuracy, but improving somewhat by dimensionality reduction. It's interesting to see that the decision tree classifier drops so much in performance after dimensionality reduction, to between 24-28% accuracy. Would be nice to know why, but I couldn't find any easily googleable explanation for it. If time permitted it would also have been interesting to try out bigger windows for closest neighbours in the KNeighborsClassifier.  
